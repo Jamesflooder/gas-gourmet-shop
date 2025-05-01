@@ -20,6 +20,7 @@ const Index = () => {
         subtitle="Profitez d'une large gamme de produits de gaz de qualité, livrés directement chez vous. Simple, rapide et sécurisé."
         buttonText="Découvrir nos produits"
         buttonLink="/products"
+        imageUrl="https://images.unsplash.com/photo-1598449356655-f42675a573ad?auto=format&q=80&w=800"
       />
       
       {/* Features Section */}
