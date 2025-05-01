@@ -1,4 +1,3 @@
-
 import { Product } from "../types/product";
 
 export const products: Product[] = [
@@ -80,5 +79,45 @@ export const products: Product[] = [
     category: "propane",
     weight: "6kg",
     stock: 18
+  },
+  {
+    id: 9,
+    name: "Bouteille de gaz Butane 10kg",
+    description: "Bouteille de taille moyenne pour usage domestique régulier. Parfaite pour les cuisines et petits chauffages.",
+    price: 29.50,
+    image: "https://images.unsplash.com/photo-1569012871812-f38ee64cd54c?auto=format&q=80&w=500",
+    category: "butane",
+    weight: "10kg",
+    stock: 22
+  },
+  {
+    id: 10,
+    name: "Bouteille de gaz Propane 10kg",
+    description: "Format moyen idéal pour les appareils extérieurs. Résistante aux basses températures.",
+    price: 32.75,
+    image: "https://images.unsplash.com/photo-1636561725278-7852114695be?auto=format&q=80&w=500",
+    category: "propane",
+    weight: "10kg",
+    stock: 18
+  },
+  {
+    id: 11,
+    name: "Bouteille de gaz Propane 20kg",
+    description: "Format familial pour usage intensif. Idéale pour les grands espaces et événements extérieurs.",
+    price: 55.90,
+    image: "https://images.unsplash.com/photo-1627731432053-b2fa9199a285?auto=format&q=80&w=500",
+    category: "propane",
+    weight: "20kg",
+    stock: 12,
+    featured: true
+  },
+  {
+    id: 12,
+    name: "Détendeur pour gaz propane",
+    description: "Détendeur haute qualité pour bouteilles de gaz propane. Assure une pression constante pour vos appareils.",
+    price: 14.90,
+    image: "https://images.unsplash.com/photo-1582942294573-56ab68a859eb?auto=format&q=80&w=500",
+    category: "accessoires",
+    stock: 40
   }
 ];
