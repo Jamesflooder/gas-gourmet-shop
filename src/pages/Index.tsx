@@ -5,6 +5,11 @@ import ProductGrid from '@/components/products/ProductGrid';
 import { Product } from '@/types/product';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import Hero from '@/components/ui/hero';
+import Feature from '@/components/ui/feature';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Truck, ShieldCheck, Clock, PhoneCall, ArrowRight } from 'lucide-react';
 
 interface IndexProps {
   session?: Session | null;
@@ -41,46 +46,89 @@ const Index = ({ session }: IndexProps) => {
   
   return (
     <PageLayout session={session}>
-      <div className="container mx-auto px-4 py-8">
-        <section className="mb-12">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4 text-gas-blue">Gas Gourmet</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Votre fournisseur de confiance pour toutes vos solutions de gaz.
+      {/* Hero Section */}
+      <Hero 
+        title="Votre partenaire de confiance en solutions de gaz"
+        subtitle="Gas Gourmet vous offre une gamme complète de produits de gaz de haute qualité, avec livraison rapide directement à votre porte."
+        buttonText="Découvrir nos produits"
+        buttonLink="/products"
+        imageUrl="/placeholder.svg"
+      />
+      
+      {/* Features Section */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gas-blue mb-4">Pourquoi choisir Gas Gourmet?</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Nous combinons qualité, service et expertise pour vous offrir une expérience exceptionnelle
             </p>
           </div>
           
-          <div className="bg-primary/10 p-8 rounded-lg mb-12">
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 mb-6 md:mb-0 md:pr-6">
-                <h2 className="text-3xl font-bold mb-4">Livraison de gaz à domicile</h2>
-                <p className="mb-4 text-lg">
-                  Nous proposons une large gamme de bouteilles de gaz et d'accessoires pour tous vos besoins domestiques et professionnels.
-                </p>
-                <ul className="list-disc list-inside mb-6 space-y-2">
-                  <li>Livraison rapide et fiable</li>
-                  <li>Produits de qualité garantie</li>
-                  <li>Service client exceptionnel</li>
-                </ul>
-              </div>
-              <div className="md:w-1/2">
-                <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-                  <span className="text-gray-500 text-xl">Image de présentation</span>
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Feature 
+              title="Livraison rapide" 
+              description="Livraison en 24-48h partout en France métropolitaine"
+              icon={<Truck size={24} />} 
+            />
+            <Feature 
+              title="Produits certifiés" 
+              description="Tous nos produits sont conformes aux normes européennes"
+              icon={<ShieldCheck size={24} />} 
+            />
+            <Feature 
+              title="Service 24/7" 
+              description="Support client disponible à tout moment"
+              icon={<Clock size={24} />}  
+            />
+            <Feature 
+              title="Conseil personnalisé" 
+              description="Nos experts vous guident dans vos choix"
+              icon={<PhoneCall size={24} />}  
+            />
           </div>
-        </section>
-        
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Nos produits populaires</h2>
+        </div>
+      </section>
+      
+      {/* Popular Products Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-gas-blue">Nos produits populaires</h2>
+            <Link to="/products" className="text-gas-green flex items-center hover:underline">
+              Voir tous les produits <ArrowRight size={16} className="ml-2" />
+            </Link>
+          </div>
+          
           {loading ? (
-            <div className="text-center py-12">Chargement des produits...</div>
+            <div className="text-center py-12">
+              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-gas-blue border-r-transparent"></div>
+              <p className="mt-4 text-gray-600">Chargement des produits...</p>
+            </div>
           ) : (
             <ProductGrid products={featuredProducts} />
           )}
-        </section>
-      </div>
+        </div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="py-16 bg-gas-blue text-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div className="mb-8 md:mb-0 md:w-2/3">
+              <h2 className="text-3xl font-bold mb-4">Prêt à commander votre gaz?</h2>
+              <p className="text-lg opacity-90 mb-6">
+                Profitez de notre service de livraison à domicile et recevez vos bouteilles de gaz en toute sécurité.
+              </p>
+            </div>
+            <div>
+              <Button size="lg" className="bg-white text-gas-blue hover:bg-gray-100">
+                <Link to="/products">Commander maintenant</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
     </PageLayout>
   );
 };
