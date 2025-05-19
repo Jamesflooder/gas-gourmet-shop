@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 const LoginPage = () => {
   const [loginEmail, setLoginEmail] = useState('');
@@ -14,17 +16,81 @@ const LoginPage = () => {
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerName, setRegisterName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    console.log('Login with:', { email: loginEmail, password: loginPassword });
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
+      
+      if (error) {
+        toast({
+          title: "Erreur de connexion",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Connexion réussie",
+          description: "Vous êtes maintenant connecté."
+        });
+        navigate('/');
+      }
+    } catch (err) {
+      toast({
+        title: "Erreur inattendue",
+        description: "Une erreur est survenue lors de la connexion.",
+        variant: "destructive",
+      });
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement register logic
-    console.log('Register with:', { name: registerName, email: registerEmail, password: registerPassword });
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: registerEmail,
+        password: registerPassword,
+        options: {
+          data: {
+            full_name: registerName,
+          },
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Erreur d'inscription",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Inscription réussie",
+          description: "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Erreur inattendue",
+        description: "Une erreur est survenue lors de l'inscription.",
+        variant: "destructive",
+      });
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -75,7 +141,9 @@ const LoginPage = () => {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit" className="w-full">Se connecter</Button>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Connexion en cours..." : "Se connecter"}
+                    </Button>
                   </CardFooter>
                 </form>
               </Card>
@@ -128,7 +196,9 @@ const LoginPage = () => {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit" className="w-full">S'inscrire</Button>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Inscription en cours..." : "S'inscrire"}
+                    </Button>
                   </CardFooter>
                 </form>
               </Card>

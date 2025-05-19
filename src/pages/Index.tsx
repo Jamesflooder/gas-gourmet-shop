@@ -1,80 +1,86 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
-import Hero from '@/components/ui/hero';
-import Feature from '@/components/ui/feature';
 import ProductGrid from '@/components/products/ProductGrid';
-import { products } from '@/data/products';
-import { Button } from '@/components/ui/button';
-import { ShoppingCart, Truck, CreditCard } from 'lucide-react';
+import { Product } from '@/types/product';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
-const Index = () => {
-  const featuredProducts = products.filter(product => product.featured);
+interface IndexProps {
+  session?: Session | null;
+}
+
+const Index = ({ session }: IndexProps) => {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('featured', true);
+        
+        if (error) {
+          console.error('Error fetching products:', error);
+          return;
+        }
+        
+        setFeaturedProducts(data as Product[]);
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
   
   return (
-    <PageLayout>
-      {/* Hero Section */}
-      <Hero 
-        title="Livraison de gaz à domicile"
-        subtitle="Profitez d'une large gamme de produits de gaz de qualité, livrés directement chez vous. Simple, rapide et sécurisé."
-        buttonText="Découvrir nos produits"
-        buttonLink="/products"
-      />
-      
-      {/* Features Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">Pourquoi choisir Gas Gourmet?</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Feature 
-              title="Livraison rapide"
-              description="Nous livrons vos bouteilles de gaz en 24 à 48 heures, directement à votre domicile."
-              icon={<Truck size={32} />}
-            />
-            <Feature 
-              title="Large sélection"
-              description="Une gamme complète de bouteilles de gaz et d'accessoires pour tous vos besoins."
-              icon={<ShoppingCart size={32} />}
-            />
-            <Feature 
-              title="Paiement sécurisé"
-              description="Toutes vos transactions sont sécurisées avec notre système de paiement en ligne."
-              icon={<CreditCard size={32} />}
-            />
-          </div>
-        </div>
-      </section>
-      
-      {/* Featured Products */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold">Produits populaires</h2>
-            <Link to="/products">
-              <Button variant="outline">Voir tout</Button>
-            </Link>
+    <PageLayout session={session}>
+      <div className="container mx-auto px-4 py-8">
+        <section className="mb-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4 text-gas-blue">Gas Gourmet</h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Votre fournisseur de confiance pour toutes vos solutions de gaz.
+            </p>
           </div>
           
-          <ProductGrid products={featuredProducts} />
-        </div>
-      </section>
-      
-      {/* CTA Section */}
-      <section className="py-12 bg-gas-green text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Prêt à commander?</h2>
-          <p className="text-lg mb-6 max-w-2xl mx-auto">
-            Découvrez notre gamme complète de produits de gaz de qualité et profitez d'une livraison rapide à domicile.
-          </p>
-          <Link to="/products">
-            <Button size="lg" className="bg-white text-gas-green hover:bg-gray-100">
-              Commander maintenant
-            </Button>
-          </Link>
-        </div>
-      </section>
+          <div className="bg-primary/10 p-8 rounded-lg mb-12">
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="md:w-1/2 mb-6 md:mb-0 md:pr-6">
+                <h2 className="text-3xl font-bold mb-4">Livraison de gaz à domicile</h2>
+                <p className="mb-4 text-lg">
+                  Nous proposons une large gamme de bouteilles de gaz et d'accessoires pour tous vos besoins domestiques et professionnels.
+                </p>
+                <ul className="list-disc list-inside mb-6 space-y-2">
+                  <li>Livraison rapide et fiable</li>
+                  <li>Produits de qualité garantie</li>
+                  <li>Service client exceptionnel</li>
+                </ul>
+              </div>
+              <div className="md:w-1/2">
+                <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
+                  <span className="text-gray-500 text-xl">Image de présentation</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Nos produits populaires</h2>
+          {loading ? (
+            <div className="text-center py-12">Chargement des produits...</div>
+          ) : (
+            <ProductGrid products={featuredProducts} />
+          )}
+        </section>
+      </div>
     </PageLayout>
   );
 };

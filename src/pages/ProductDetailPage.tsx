@@ -1,169 +1,163 @@
 
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
-import { useCart } from '@/context/CartContext';
-import { products } from '@/data/products';
+import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Truck, Shield, ArrowLeft, Minus, Plus } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { useCart } from '@/context/CartContext';
+import { ShoppingCart, Minus, Plus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { addToCart } = useCart();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
   
-  const product = products.find(p => p.id === Number(id));
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching product:', error);
+          return;
+        }
+        
+        setProduct(data as Product);
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProduct();
+  }, [id]);
   
-  if (!product) {
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart(product, quantity);
+    }
+  };
+  
+  const decrementQuantity = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
+  
+  const incrementQuantity = () => {
+    if (product && quantity < product.stock) setQuantity(quantity + 1);
+  };
+  
+  if (loading) {
     return (
       <PageLayout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="text-3xl font-bold mb-4">Produit non trouvé</h1>
-          <p className="mb-8">Le produit que vous recherchez n'existe pas.</p>
-          <Link to="/products">
-            <Button>Retour aux produits</Button>
-          </Link>
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center">Chargement du produit...</div>
         </div>
       </PageLayout>
     );
   }
   
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (!isNaN(value) && value >= 1 && value <= product.stock) {
-      setQuantity(value);
-    }
-  };
-  
-  const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-  
-  const incrementQuantity = () => {
-    if (quantity < product.stock) {
-      setQuantity(quantity + 1);
-    }
-  };
-  
-  const handleAddToCart = () => {
-    addToCart(product, quantity);
-  };
+  if (!product) {
+    return (
+      <PageLayout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Produit non trouvé</h1>
+            <p>Le produit que vous recherchez n'existe pas.</p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
   
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-8">
-        <Link to="/products" className="inline-flex items-center text-primary hover:underline mb-6">
-          <ArrowLeft size={16} className="mr-1" />
-          Retour aux produits
-        </Link>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* Product Image */}
-          <div className="bg-white rounded-lg overflow-hidden shadow-md">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-white p-4 rounded-lg">
             <img 
               src={product.image} 
               alt={product.name} 
-              className="w-full h-auto object-cover"
+              className="w-full h-auto object-contain max-h-96"
             />
           </div>
           
-          {/* Product Info */}
           <div>
-            <div className="flex flex-wrap gap-2 mb-2">
-              <Badge>{product.category}</Badge>
-              {product.featured && <Badge variant="secondary">Populaire</Badge>}
-              {product.stock <= 5 && (
-                <Badge variant="destructive">
-                  {product.stock === 0 ? 'Rupture de stock' : 'Stock limité'}
-                </Badge>
+            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+            <p className="text-2xl font-semibold text-primary mb-4">
+              {product.price.toFixed(2)} €
+            </p>
+            
+            <div className="bg-gray-100 p-4 rounded-md mb-6">
+              <p className="text-sm mb-2">Disponibilité: 
+                <span className={product.stock > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                  {product.stock > 0 ? " En stock" : " Rupture de stock"}
+                </span>
+              </p>
+              {product.stock > 0 && (
+                <p className="text-sm">Quantité disponible: {product.stock}</p>
+              )}
+              {product.category && (
+                <p className="text-sm mt-2">Catégorie: {product.category}</p>
+              )}
+              {product.weight && (
+                <p className="text-sm mt-2">Poids: {product.weight}</p>
               )}
             </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.name}</h1>
-            <p className="text-2xl font-semibold text-primary mb-4">{product.price.toFixed(2)} €</p>
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">Description</h3>
+              <p className="text-gray-700">{product.description}</p>
+            </div>
             
-            {product.weight && (
-              <p className="text-muted-foreground mb-4">Poids: {product.weight}</p>
+            {product.stock > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center mb-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={decrementQuantity}
+                    disabled={quantity <= 1}
+                  >
+                    <Minus size={16} />
+                  </Button>
+                  <span className="mx-4 font-medium w-8 text-center">{quantity}</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={incrementQuantity}
+                    disabled={quantity >= product.stock}
+                  >
+                    <Plus size={16} />
+                  </Button>
+                </div>
+                
+                <Button 
+                  className="w-full" 
+                  size="lg" 
+                  onClick={handleAddToCart}
+                >
+                  <ShoppingCart size={20} className="mr-2" />
+                  Ajouter au panier
+                </Button>
+              </div>
             )}
             
-            <p className="text-gray-700 mb-6">{product.description}</p>
-            
-            <div className="mb-6">
-              <p className="text-sm mb-2">Quantité:</p>
-              <div className="flex max-w-[160px]">
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  size="icon" 
-                  onClick={decrementQuantity}
-                  disabled={quantity <= 1}
-                >
-                  <Minus size={16} />
-                </Button>
-                <Input
-                  type="number"
-                  min="1"
-                  max={product.stock}
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                  className="mx-2 text-center"
-                />
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  size="icon" 
-                  onClick={incrementQuantity}
-                  disabled={quantity >= product.stock}
-                >
-                  <Plus size={16} />
-                </Button>
-              </div>
-              <p className="text-sm mt-2">
-                {product.stock > 0 
-                  ? `${product.stock} articles disponibles` 
-                  : 'Rupture de stock'}
-              </p>
-            </div>
-            
-            <Button
-              className="w-full sm:w-auto mb-4 sm:mb-0 sm:mr-4"
-              size="lg"
-              onClick={handleAddToCart}
-              disabled={product.stock === 0}
-            >
-              <ShoppingCart size={18} className="mr-2" />
-              Ajouter au panier
-            </Button>
-            
-            <Link to="/cart">
-              <Button variant="outline" size="lg">
-                Voir le panier
+            {product.stock <= 0 && (
+              <Button disabled className="w-full" size="lg">
+                Produit indisponible
               </Button>
-            </Link>
-            
-            <Separator className="my-8" />
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-start">
-                <Truck size={24} className="mr-2 text-primary flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold">Livraison rapide</h3>
-                  <p className="text-sm text-muted-foreground">Livraison sous 24-48h à domicile</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <Shield size={24} className="mr-2 text-primary flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold">Sécurité garantie</h3>
-                  <p className="text-sm text-muted-foreground">Produits certifiés et testés</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
